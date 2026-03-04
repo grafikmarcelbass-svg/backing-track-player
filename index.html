@@ -55,6 +55,12 @@
     height: 100vh;
   }
 
+  /* Desktop: force left panel first, right panel second */
+  @media (min-width: 701px) {
+    #left  { order: 1; }
+    #right { order: 2; }
+  }
+
   /* ── LEFT PANEL ── */
   #left {
     width: 38%;
