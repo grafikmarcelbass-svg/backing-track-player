@@ -982,41 +982,46 @@ function renderSongList() {
 
 function addTapHandler(row, idx) {
   let lastTapTime = 0;
+  let lastTouchEnd = 0;
 
-  // touchstart for immediate gesture recognition on iOS
   row.addEventListener('touchstart', e => {
     if (row._holdFired) return;
     const now = Date.now();
     const gap = now - lastTapTime;
 
     if (gap < 400 && gap > 0) {
-      // Second tap — play immediately in touchstart (valid iOS gesture)
+      // Double tap — play
       e.preventDefault();
       const liveSong = setlists[currentSetlistIdx].songs[idx];
       if (liveSong) {
         selectSong(idx);
         doPlay(idx);
       }
-      lastTapTime = 0; // reset so triple-tap doesn't re-trigger
+      lastTapTime = 0;
     } else {
-      // First tap — record time, selectSong on touchend
       lastTapTime = now;
     }
   }, { passive: false });
 
   row.addEventListener('touchend', e => {
     if (row._holdFired) { row._holdFired = false; return; }
-    // Single tap select (only if not a double-tap that already played)
+    lastTouchEnd = Date.now();
     const gap = Date.now() - lastTapTime;
     if (gap > 0 && gap < 400) {
-      // This was the first tap touchend — just select
-      const liveSong = setlists[currentSetlistIdx].songs[idx];
-      if (liveSong) selectSong(idx);
+      // Single tap — only update selection UI, never touch audio
+      selectedIdx = idx;
+      currentSongIdx = idx;
+      const song = setlists[currentSetlistIdx].songs[idx];
+      // Update info display but DO NOT change audio.src
+      document.getElementById('song-title').textContent = song ? song.title : '—';
+      document.getElementById('song-artist').textContent = song ? (song.artist || '') : '';
+      updateRowClasses();
     }
   }, { passive: true });
 
-  // Desktop fallback
+  // Desktop only — ignore if touch was used recently
   row.addEventListener('click', () => {
+    if (Date.now() - lastTouchEnd < 500) return; // suppress after touch
     if (row._holdFired) { row._holdFired = false; return; }
     const liveSong = setlists[currentSetlistIdx].songs[idx];
     if (liveSong) selectSong(idx);
