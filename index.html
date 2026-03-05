@@ -1087,8 +1087,8 @@ function selectSong(idx) {
   const song = setlists[currentSetlistIdx].songs[idx];
   updateSongInfo(song);
   updateRowClasses();
-  // Preload audio on single tap — so double-tap only needs audio.play()
-  if (song && song.url) {
+  // Only preload if nothing is playing — never interrupt active playback
+  if (!isPlaying && song && song.url) {
     audio.src = song.url;
     audio.currentTime = 0;
   }
